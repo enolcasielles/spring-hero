@@ -1,8 +1,13 @@
 package com.maetrik.jumpingball.scenes;
 
+import org.andengine.entity.IEntity;
+import org.andengine.entity.modifier.MoveXModifier;
+import org.andengine.entity.modifier.MoveYModifier;
 import org.andengine.entity.scene.IOnSceneTouchListener;
+import org.andengine.entity.scene.ITouchArea;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.Background;
+import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.text.Text;
 import org.andengine.entity.text.TextOptions;
 import org.andengine.extension.physics.box2d.FixedStepPhysicsWorld;
@@ -28,7 +33,7 @@ import com.maetrik.jumpingball.objetos.ContenedorBloques;
 
 
 
-public class GameSceneBasic extends BaseScene implements IOnSceneTouchListener {
+public class GameSceneBasic extends BaseScene implements IOnSceneTouchListener  {
 	
 	//-----------------------------------
 	//CONSTANTS
@@ -46,6 +51,7 @@ public class GameSceneBasic extends BaseScene implements IOnSceneTouchListener {
 	
 	private Text texto;
 	private Text scoreText;
+	private Sprite botonCarga, botonCargaDinamico;
 	private int score;
 	private boolean nuevoRecord;
 	private boolean finPartida;
@@ -64,7 +70,6 @@ public class GameSceneBasic extends BaseScene implements IOnSceneTouchListener {
 		createPhysics();
 		createBackground();
 		createObjects();
-		this.setOnSceneTouchListener(this);
 	}
 
 	@Override
@@ -126,6 +131,11 @@ public class GameSceneBasic extends BaseScene implements IOnSceneTouchListener {
 				fms.show();
 				finPartida = true;  //La partida ha finalizado
 				
+				//Oculto el boton
+				MoveYModifier move1 = new MoveYModifier(0.3f, botonCarga.getX(), camera.getWidth());
+				botonCarga.registerEntityModifier(move1);
+				botonCargaDinamico.registerEntityModifier(move1);
+				
 			}
 			
 			
@@ -151,15 +161,13 @@ public class GameSceneBasic extends BaseScene implements IOnSceneTouchListener {
 		
 	}
 	
-
 	
 	//-----------------------------------
-	//IOnSceneTouchListener Methods
-	//-----------------------------------
-	@Override
-	public boolean onSceneTouchEvent(final Scene pScene, final TouchEvent pSceneTouchEvent) {
+	//INTERFACE METHODS
+	//-----------------------------------	
+	public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
 		if (physicsWorld != null && !finPartida) {
-			if (pSceneTouchEvent.isActionUp() && comienza == false) { //Solo se dara con el primer tap
+			if (pSceneTouchEvent.isActionUp() && comienza == false) {  //Solo se dara el primer tap
 				resourcesManager.musica.play();
 				comienza = true;  //Comienza la partida 
 				texto.detachSelf();
@@ -167,27 +175,9 @@ public class GameSceneBasic extends BaseScene implements IOnSceneTouchListener {
 				texto = null;
 				return true;
 			}
-			if (pSceneTouchEvent.isActionDown() && comienza == true ) {
-				resourcesManager.sonidoCargar.play();
-				saltador.comienzaCarga();
-				return true;
-			}
-			if (pSceneTouchEvent.isActionUp() && comienza == true ) {
-				//Genero un salto si estoy en una posicion que pueda saltar
-				resourcesManager.sonidoCargar.stop();
-				resourcesManager.sonidoSaltar.play();
-				saltador.finalizarCarga();
-				if (puedeSaltar) {
-					saltador.saltar();
-				}
-				return true;
-			}
 		}
-		Log.i("GameSceneBasic","evento escena");
 		return false;
-	}
-	
-	
+	};
 
 	
 	//-----------------------------------
@@ -200,6 +190,7 @@ public class GameSceneBasic extends BaseScene implements IOnSceneTouchListener {
 		nuevoRecord = false;
 		finPartida = false;
 		Constants.MUSIC = true;
+		this.setOnSceneTouchListener(this);
 	}
 	
 	private void createPhysics() {
@@ -226,13 +217,35 @@ public class GameSceneBasic extends BaseScene implements IOnSceneTouchListener {
 	    scoreText.setPosition(camera.getWidth()/2, 5);
 	    scoreText.setScale(1.5f);
 	    this.attachChild(scoreText);
+	    
+	    //Inicio el boton de carga
+	    botonCarga = new Sprite(0, 0, resourcesManager.texturaBotonPushAndJump, vbom) {
+	    	@Override
+	    	public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
+	    			float pTouchAreaLocalX, float pTouchAreaLocalY) {
+	    		// TODO Auto-generated method stub
+	    		return botonTocado(pSceneTouchEvent);
+	    	}
+	    };
+	    botonCargaDinamico = new Sprite(0, 0, resourcesManager.texturaBotonPushedAndJump, vbom);
+	    botonCarga.setPosition(camera.getWidth()-botonCarga.getWidth()-20, camera.getHeight() - botonCarga.getHeight() - 20);
+	    botonCargaDinamico.setPosition(botonCarga.getX(), botonCarga.getY());
+	    botonCarga.setZIndex(2);
+	    botonCargaDinamico.setZIndex(1);
+	    this.attachChild(botonCarga);
+	    this.attachChild(botonCargaDinamico);
+	    this.registerTouchArea(botonCarga);
+	    this.sortChildren();
+	    
+	    //Boton dinamico sin transparencia
+	    botonCargaDinamico.setAlpha(0.0f);
 		
 	}
 	
 	
 	private void createObjects() {
 		//Creo el objeto que manejara y representara al saltador
-		saltador = new Bola(this);
+		saltador = new Bola(this,botonCargaDinamico);
 		//Inicio el contenedor de objetos
 		bloques = new ContenedorBloques(this);
 	}
@@ -284,6 +297,29 @@ public class GameSceneBasic extends BaseScene implements IOnSceneTouchListener {
 	        }
 	    };
 	    return contactListener;
+	}
+	
+	
+	
+	private boolean botonTocado(final TouchEvent pSceneTouchEvent) {
+		if (physicsWorld != null && !finPartida) {
+			if (pSceneTouchEvent.isActionDown() && comienza == true ) {
+				resourcesManager.sonidoCargar.play();
+				saltador.comienzaCarga();
+				return true;
+			}
+			if (pSceneTouchEvent.isActionUp() && comienza == true ) {
+				//Genero un salto si estoy en una posicion que pueda saltar
+				resourcesManager.sonidoCargar.stop();
+				resourcesManager.sonidoSaltar.play();
+				saltador.finalizarCarga();
+				if (puedeSaltar) {
+					saltador.saltar();
+				}
+				return true;
+			}
+		}
+		return false;
 	}
 
 	

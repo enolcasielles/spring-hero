@@ -45,7 +45,9 @@ public class Bloque {
 		final FixtureDef wallFixtureDef = PhysicsFactory.createFixtureDef(1.0f, 0.0f, 0.0f);
 		this.body = PhysicsFactory.createBoxBody(scene.physicsWorld, rect, BodyType.StaticBody, wallFixtureDef);
 		
+		rect.setZIndex(0);
 		scene.attachChild(rect);
+		scene.sortChildren();
 		
 		//Registro el body
 		scene.physicsWorld.registerPhysicsConnector(new PhysicsConnector(rect, this.body, true, true));

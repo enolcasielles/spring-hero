@@ -8,6 +8,7 @@ import org.andengine.entity.modifier.ParallelEntityModifier;
 import org.andengine.entity.modifier.ScaleModifier;
 import org.andengine.entity.primitive.Line;
 import org.andengine.entity.sprite.AnimatedSprite;
+import org.andengine.entity.sprite.Sprite;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
 import org.andengine.extension.physics.box2d.PhysicsFactory;
 import org.andengine.util.color.Color;
@@ -27,6 +28,7 @@ public class Bola extends AnimatedSprite  {
 	//CONSTANTS
 	//-----------------------------------
 	private static final float MAX_CARGA = 100;
+	private static final float MIN_CARGA = 10;
 	private final float MAX_SCALE_X = 1.5f;
 	private final float MIN_SCALE_Y = MAX_SCALE_X - 1.0f;
 	private final float relacion = 0.01f;
@@ -34,11 +36,12 @@ public class Bola extends AnimatedSprite  {
 	//-----------------------------------
 	//VARIABLES
 	//-----------------------------------
-	private float salto;
+	private float salto, transparenciaBoton;
 	private boolean cargandoSalto;
 	
 	private Body body;
 	private BaseScene scene;
+	private Sprite boton;
 	
 	private Line lineaCarga;
 
@@ -51,7 +54,7 @@ public class Bola extends AnimatedSprite  {
 	//-----------------------------------
 	//CONSTRUCTOR
 	//-----------------------------------
-	public Bola(BaseScene scene) {
+	public Bola(BaseScene scene, Sprite boton) {
 		
 		super(scene.camera.getWidth()/2, scene.camera.getHeight()/2, 
 				scene.resourcesManager.texturaPersonaje, scene.vbom);
@@ -62,6 +65,9 @@ public class Bola extends AnimatedSprite  {
 		
 		//Iniciamos el sprite
 		this.scene = scene;
+		
+		//Almaceno el boton
+		this.boton = boton;
 		
 		//Generamos el body para el sprite y y le damos un identificador
 		body = PhysicsFactory.createCircleBody(scene.physicsWorld, 
@@ -104,7 +110,7 @@ public class Bola extends AnimatedSprite  {
 	//-----------------------------------
 	public void saltar() {
 		body.setLinearVelocity(new Vector2(0, salto*(-1)/5));
-		salto = 10;
+		salto = MIN_CARGA;
 	}
 	
 	public void addVidas() {
@@ -122,7 +128,12 @@ public class Bola extends AnimatedSprite  {
 	public void cargar() {
 		if (cargandoSalto) {
 			salto++;
-			if (salto >= MAX_CARGA) salto = (long)MAX_CARGA;
+			transparenciaBoton += 1/(MAX_CARGA - MIN_CARGA);
+			if (salto >= MAX_CARGA) {
+				salto = (long)MAX_CARGA;
+				transparenciaBoton = 1.0f;
+			}
+			boton.setAlpha(transparenciaBoton);
 			scene.detachChild(lineaCarga);
 			lineaCarga = new Line(scene.camera.getWidth()/3, 15, scene.camera.getWidth()/3 + 
 					       scene.camera.getWidth()/3 * salto / MAX_CARGA, 15, scene.vbom);
@@ -141,7 +152,9 @@ public class Bola extends AnimatedSprite  {
 	
 	public void comienzaCarga() {
 		cargandoSalto = true;
-		salto = 10;
+		salto = MIN_CARGA;
+		transparenciaBoton = 0.0f;
+		boton.setAlpha(transparenciaBoton);
 		lineaCarga = new Line(scene.camera.getWidth()/3, 15, scene.camera.getWidth()/3 + 
 				          scene.camera.getWidth()/3 * salto / MAX_CARGA,15, scene.vbom);
 		lineaCarga.setColor(Color.RED);
@@ -154,6 +167,8 @@ public class Bola extends AnimatedSprite  {
 		scene.detachChild(lineaCarga);
 		lineaCarga = null;
 		this.setScale(1.0f);
+		transparenciaBoton = 0.0f;
+		boton.setAlpha(transparenciaBoton);
 	}
 	
 	

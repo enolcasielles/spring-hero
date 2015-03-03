@@ -10,7 +10,7 @@ public class Constants {
 	
 	public static float MAX_SEPARATION = 200;
 	public static float MIN_SEPARATION = 70;
-	public static float ANCHO = 35;
+	public static float ANCHO = 55;
 	public static float MAX_ANCHO_INIT = 100;
 	public static float MIN_ANCHO_INIT = 50;
 	public static float INCR_ALTO_MAX_INIT = 50;
