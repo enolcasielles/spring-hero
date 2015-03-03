@@ -10,7 +10,7 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.maetrik.jumpingball.Constants;
-import com.maetrik.jumpingball.scenes.BaseScene;
+import com.maetrik.jumpingball.scenes.GameSceneBasic;
 
 public class Bloque {
 
@@ -32,7 +32,7 @@ public class Bloque {
 	//---------------------
 	//CONSTRUCTORS
 	//---------------------
-	public Bloque(BaseScene scene, float posX, float ancho, float alto) {
+	public Bloque(GameSceneBasic scene, float posX, float ancho, float alto) {
 		this.superado = false;
 		this.ancho = ancho;
 		this.alto = alto;
@@ -42,12 +42,14 @@ public class Bloque {
 		  (float)Math.random() * (Constants.MAX_SEPARATION - Constants.MIN_SEPARATION) + Constants.MIN_SEPARATION; 
 		rect = new Rectangle(this.posX, this.posY, this.ancho, this.alto, scene.vbom);
 		rect.setColor(0.514f,0.514f,0.514f);
+		Rectangle r = new Rectangle(0.0f, 0.0f, this.ancho, 5, scene.vbom);
+		r.setColor(1.0f, 1.0f, 1.0f);
+		rect.attachChild(r);
 		final FixtureDef wallFixtureDef = PhysicsFactory.createFixtureDef(1.0f, 0.0f, 0.0f);
 		this.body = PhysicsFactory.createBoxBody(scene.physicsWorld, rect, BodyType.StaticBody, wallFixtureDef);
 		
 		rect.setZIndex(0);
-		scene.attachChild(rect);
-		scene.sortChildren();
+		scene.getChild(3).attachChild(rect);
 		
 		//Registro el body
 		scene.physicsWorld.registerPhysicsConnector(new PhysicsConnector(rect, this.body, true, true));

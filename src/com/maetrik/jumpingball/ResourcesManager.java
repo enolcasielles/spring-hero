@@ -8,6 +8,10 @@ import org.andengine.audio.sound.Sound;
 import org.andengine.audio.sound.SoundFactory;
 import org.andengine.engine.Engine;
 import org.andengine.engine.camera.Camera;
+import org.andengine.extension.texturepacker.opengl.texture.util.texturepacker.TexturePack;
+import org.andengine.extension.texturepacker.opengl.texture.util.texturepacker.TexturePackLoader;
+import org.andengine.extension.texturepacker.opengl.texture.util.texturepacker.TexturePackTextureRegionLibrary;
+import org.andengine.extension.texturepacker.opengl.texture.util.texturepacker.exception.TexturePackParseException;
 import org.andengine.opengl.font.Font;
 import org.andengine.opengl.font.FontFactory;
 import org.andengine.opengl.texture.ITexture;
@@ -18,6 +22,7 @@ import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.texture.region.ITiledTextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.util.color.Color;
+import org.andengine.util.debug.Debug;
 
 
 
@@ -58,7 +63,8 @@ public class ResourcesManager{
 	public ITextureRegion texturaCopyright;
 	public ITiledTextureRegion texturaBotonSonido;
 	
-	private BitmapTextureAtlas mAtlasGame;
+	private TexturePackTextureRegionLibrary texturePackLibrary;
+	private TexturePack texturePack;
 	public ITiledTextureRegion texturaPersonaje; 
 	public ITiledTextureRegion texturaCaritaResultado;
 	public ITextureRegion texturaShareFacebook;
@@ -67,6 +73,22 @@ public class ResourcesManager{
 	public ITextureRegion texturaBotonRestart; 
 	public ITextureRegion texturaBotonPushAndJump;
 	public ITextureRegion texturaBotonPushedAndJump;
+	public ITextureRegion[] texturasNube;
+	public static final int NUM_NUBES = 5;
+	public static final int BOLA_ID = 0;
+	public static final int BOTONLOGROS_ID = 1;
+	public static final int BOTONMENU_ID = 2;
+	public static final int BOTONPUSHANDJUMP_ID = 3;
+	public static final int BOTONPUSHEDANDJUMP_ID = 4;
+	public static final int BOTONRESTART_ID = 5;
+	public static final int CARITARESULTADO_ID = 6;
+	public static final int NUBE1_ID = 7;
+	public static final int NUBE2_ID = 8;
+	public static final int NUBE3_ID = 9;
+	public static final int NUBE4_ID = 10;
+	public static final int NUBE5_ID = 11;
+	public static final int SHAREFACEBOOK_ID = 12;
+	public static final int SHAREGOOGLE_ID = 13;
 	
 	
 	
@@ -167,8 +189,9 @@ public class ResourcesManager{
     
     
     public void unloadGameResources() {
-    	mAtlasGame.unload();
     	
+    	texturePack.unloadTexture();
+    	texturePack=null;
     	fuenteGame.unload();
     	fuenteGame = null;
     	texturaPersonaje = null;
@@ -231,36 +254,40 @@ public class ResourcesManager{
     
     
 	private void loadGameGraphics() {
-    	//Definimos el atlas para las texturas del juego
-    	mAtlasGame = new BitmapTextureAtlas(actividad.getTextureManager(),1024,256,TextureOptions.DEFAULT);
+		//Parseo el fichero
+    	try {
+    		  texturePack = new TexturePackLoader(actividad.getTextureManager(), "gfx/")
+    		      	.loadFromAsset(actividad.getAssets(), "textura_game.xml");
+    		  texturePack.loadTexture();
+    		  texturePackLibrary = texturePack.getTexturePackTextureRegionLibrary();
+    	} catch (final TexturePackParseException e)  {
+    	      Debug.e(e);
+    	}
 		
-    	texturaPersonaje = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mAtlasGame, actividad,
-    			"bola.png", 0, 0, 8, 1); // 256x32
+    	texturaPersonaje = texturePackLibrary.get(BOLA_ID, 8, 1);
     	
-    	texturaBotonPushAndJump =BitmapTextureAtlasTextureRegionFactory.createFromAsset(mAtlasGame, actividad,
-    			"botonPushandjump.png", 0, 121); // 120x120
+    	texturaBotonPushAndJump = texturePackLibrary.get(BOTONPUSHANDJUMP_ID);
     	
-    	texturaBotonPushedAndJump =BitmapTextureAtlasTextureRegionFactory.createFromAsset(mAtlasGame, actividad,
-    			"botonPushedandjump.png", 121, 121); // 120x120
+    	texturaBotonPushedAndJump = texturePackLibrary.get(BOTONPUSHEDANDJUMP_ID);
     	
-    	texturaCaritaResultado = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mAtlasGame, actividad,
-    			"caritaResultado.png", 256, 0, 2, 1); // 64x32
+    	texturaCaritaResultado = texturePackLibrary.get(CARITARESULTADO_ID, 2, 1);
     	
-    	texturaBotonRestart = BitmapTextureAtlasTextureRegionFactory.createFromAsset(mAtlasGame, actividad,
-				"botonRestart.png", 624, 0); //120x120
+    	texturaBotonRestart = texturePackLibrary.get(BOTONRESTART_ID);
     	
-    	texturaBotonMenu = BitmapTextureAtlasTextureRegionFactory.createFromAsset(mAtlasGame, actividad,
-				"botonMenu.png", 384, 0); //120x120
+    	texturaBotonMenu = texturePackLibrary.get(BOTONMENU_ID);
     	
-    	texturaShareFacebook = BitmapTextureAtlasTextureRegionFactory.createFromAsset(mAtlasGame, actividad,
-				"shareFacebook.png", 504, 0); //120x120
+    	texturaShareFacebook = texturePackLibrary.get(SHAREFACEBOOK_ID);
     	
-    	texturaShareGoogle = BitmapTextureAtlasTextureRegionFactory.createFromAsset(mAtlasGame, actividad,
-				"shareGoogle.png", 744, 0); //120x120
+    	texturaShareGoogle = texturePackLibrary.get(SHAREGOOGLE_ID);
     	
-
-    	//Cargamos el atlas
-    	mAtlasGame.load(); 
+    	texturasNube = new ITextureRegion[NUM_NUBES];
+    	texturasNube[0] = texturePackLibrary.get(NUBE1_ID);
+    	texturasNube[1] = texturePackLibrary.get(NUBE2_ID);
+    	texturasNube[2] = texturePackLibrary.get(NUBE3_ID);
+    	texturasNube[3] = texturePackLibrary.get(NUBE4_ID);
+    	texturasNube[4] = texturePackLibrary.get(NUBE5_ID);
+    	
+    	
 	}
 	
 	

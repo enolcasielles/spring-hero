@@ -29,6 +29,7 @@ import com.facebook.widget.WebDialog.OnCompleteListener;
 import com.maetrik.jumpingball.Constants;
 import com.maetrik.jumpingball.MainActivity;
 import com.maetrik.jumpingball.SceneManager;
+import com.maetrik.jumpingball.Utils;
 import com.maetrik.jumpingball.SceneManager.SceneType;
 
 /**
@@ -47,8 +48,6 @@ public class FinalMenuDialog extends Rectangle {
 	private final int FACEBOOK = 2;
 	private final int GOOGLE = 3;
 	private final int MENU = 1;
-	
-	private final float MAX_DIST_MOVE = 10;
 
 	
 
@@ -123,7 +122,7 @@ public class FinalMenuDialog extends Rectangle {
 				   }
 	           }
 			   if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_MOVE) { //Deseleccionamos
-				   if (calcula_distancia(posX,posY,X,Y)) {
+				   if (Utils.calcula_distancia(posX,posY,X,Y)) {
 					   this.setScale(1.0f);
 					   idItemSelected = -1;
 					   Log.i("FinalMenuDialog","evento mover");
@@ -141,7 +140,7 @@ public class FinalMenuDialog extends Rectangle {
 			@Override
 			public boolean  onAreaTouched(TouchEvent pSceneTouchEvent, float X, float Y)  {
 				if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_MOVE) {
-					 if (calcula_distancia(posX,posY,X,Y)) {
+					 if (Utils.calcula_distancia(posX,posY,X,Y)) {
 							this.setScale(1.0f);
 							idItemSelected = -1;
 					 }
@@ -170,7 +169,7 @@ public class FinalMenuDialog extends Rectangle {
 			@Override
 			public boolean  onAreaTouched(TouchEvent pSceneTouchEvent, float X, float Y)  {
 				if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_MOVE) {
-					 if (calcula_distancia(posX,posY,X,Y)) {
+					 if (Utils.calcula_distancia(posX,posY,X,Y)) {
 							this.setScale(1.0f);
 							idItemSelected = -1;
 					 }
@@ -198,7 +197,7 @@ public class FinalMenuDialog extends Rectangle {
 			   @Override
 			   public boolean onAreaTouched(TouchEvent pSceneTouchEvent, float X, float Y)  {
 				  if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_MOVE) {
-					  if (calcula_distancia(posX,posY,X,Y)) {
+					  if (Utils.calcula_distancia(posX,posY,X,Y)) {
 						  this.setScale(1.0f);
 						   idItemSelected = -1; 
 					  }
@@ -357,12 +356,6 @@ public class FinalMenuDialog extends Rectangle {
 	//Metodo para compartir en el Google Game
 	private void shareGoogle(int record) {
 		scene.resourcesManager.actividad.signInClicked();
-	}
-	
-	
-	private boolean calcula_distancia(float xInit, float yInit, float xAct, float yAct) {
-		if (Math.sqrt((xAct - xInit) * (xAct - xInit) + (yAct - yInit) * (yAct - yInit)) >= MAX_DIST_MOVE) return true;
-		return false;
 	}
 	
 	

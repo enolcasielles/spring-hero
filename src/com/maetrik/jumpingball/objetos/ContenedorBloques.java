@@ -6,12 +6,13 @@ import android.R.integer;
 
 import com.maetrik.jumpingball.Constants;
 import com.maetrik.jumpingball.scenes.BaseScene;
+import com.maetrik.jumpingball.scenes.GameSceneBasic;
 
 public class ContenedorBloques {
 	
 	private ArrayList<Bloque> bloques;
 	private BloquesPool recolector;
-	private BaseScene scene;
+	private GameSceneBasic scene;
 	private float anchoMax, anchoMin, incrAltoMax;
 	
 	//Modos de juego, comportamiento del contenedor
@@ -29,7 +30,7 @@ public class ContenedorBloques {
 	/*
 	 * Genera un contenedor de bloques para el modo de juego basico
 	 * */
-	public ContenedorBloques(BaseScene scene) {
+	public ContenedorBloques(GameSceneBasic scene) {
 		this.scene = scene;
 		bloques = new ArrayList<Bloque>();
 		//Genero el primer bloque
@@ -43,7 +44,7 @@ public class ContenedorBloques {
 	/*
 	 * Genera un contenedor de bloques para el modo de juego especificado en el segundo parametro
 	 */
-	public ContenedorBloques(BaseScene scene, MODO_JUEGO mod) {
+	public ContenedorBloques(GameSceneBasic scene, MODO_JUEGO mod) {
 		this.scene = scene;
 		bloques = new ArrayList<Bloque>();
 		//Genero el primer bloque
