@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- TODO: Replace this by your app's app ID! -->
+    <string name="app_id">335028862876</string>
+
+    <!-- TODO: Replace these by your achievement/leaderboard IDs! -->
+    <string name="leaderboard_score">CgkInP-aiuAJEAIQAQ</string>
+    <string name="achievement_score10">CgkInP-aiuAJEAIQAw</string>
+    <string name="achievement_score25">CgkInP-aiuAJEAIQBA</string>
+    <string name="achievement_score50">CgkInP-aiuAJEAIQBQ</string>
+    <string name="achievement_score100">CgkInP-aiuAJEAIQBg</string>
+    <string name="achievement_score250">CgkInP-aiuAJEAIQBw</string>
+</resources>
