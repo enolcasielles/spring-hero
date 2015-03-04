@@ -6,6 +6,8 @@ import org.andengine.entity.primitive.Rectangle;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
 import org.andengine.extension.physics.box2d.PhysicsFactory;
 
+import android.R.integer;
+
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
@@ -18,21 +20,33 @@ public class Bloque {
 	//CONSTANTS
 	//---------------------
 	private final float VELOCIDAD = 120;
+	private final float TIEMPO_SUBIDA = 0.1f;
+	
+	private final int ESTA_BAJANDO = 0;
+	private final int ESTA_SUBIENDO = 1;
+	private final int ESTA_PARADA = 2;
+	
 	
 	//---------------------
 	//VARIABLES
 	//---------------------
 	private Body body;
 	private Rectangle rect;
+	private Rectangle r;
 	private float posX, posY, ancho, alto;
 	private float separacion;
 	private boolean superado;
+	
+	private int estado;
+	private float vel;
+	
+	private OnEstadoCarga onEstadoCarga;
 	
 	
 	//---------------------
 	//CONSTRUCTORS
 	//---------------------
-	public Bloque(GameSceneBasic scene, float posX, float ancho, float alto) {
+	public Bloque(GameSceneBasic scene, float posX, float ancho, float alto, boolean esPrimero) {
 		this.superado = false;
 		this.ancho = ancho;
 		this.alto = alto;
@@ -42,9 +56,11 @@ public class Bloque {
 		  (float)Math.random() * (Constants.MAX_SEPARATION - Constants.MIN_SEPARATION) + Constants.MIN_SEPARATION; 
 		rect = new Rectangle(this.posX, this.posY, this.ancho, this.alto, scene.vbom);
 		rect.setColor(0.514f,0.514f,0.514f);
-		Rectangle r = new Rectangle(0.0f, 0.0f, this.ancho, 5, scene.vbom);
-		r.setColor(1.0f, 1.0f, 1.0f);
-		rect.attachChild(r);
+		if (!esPrimero) {
+			r = new Rectangle(0.0f, 0.0f, this.ancho, 30, scene.vbom);
+			r.setColor(1.0f, 1.0f, 1.0f);
+			rect.attachChild(r);
+		}
 		final FixtureDef wallFixtureDef = PhysicsFactory.createFixtureDef(1.0f, 0.0f, 0.0f);
 		this.body = PhysicsFactory.createBoxBody(scene.physicsWorld, rect, BodyType.StaticBody, wallFixtureDef);
 		
@@ -53,6 +69,8 @@ public class Bloque {
 		
 		//Registro el body
 		scene.physicsWorld.registerPhysicsConnector(new PhysicsConnector(rect, this.body, true, true));
+		
+		estado = ESTA_PARADA;
 				
 	}
 	
@@ -98,11 +116,42 @@ public class Bloque {
 	
 	public void redefinir() {
 		this.superado = false;
+		this.r.setY(0.0f);
 		this.posX = Constants.ANCHO_PANTALLA;
 		this.posY = Constants.ALTO_PANTALLA -  alto;
 		this.separacion =
 		  (float)Math.random() * (Constants.MAX_SEPARATION - Constants.MIN_SEPARATION) + Constants.MIN_SEPARATION; 		
 	}
+	
+	
+	
+	public void update(float seconds) {
+		if (estado == ESTA_BAJANDO) {
+			this.r.setY(this.r.getY()+1.5f);
+		}
+		
+		else if(estado == ESTA_SUBIENDO) {
+			this.r.setY(this.r.getY() - vel*seconds);
+			if (this.r.getY() <= 0) {
+				this.r.setY(0.0f);
+				estado = ESTA_PARADA;
+				onEstadoCarga.descargaFinalizada();
+			}
+		}
+	}
+	
+	
+	public void iniciaCarga() {
+		estado = ESTA_BAJANDO;
+	}
+	
+	public void finalizaCarga(OnEstadoCarga oec) {
+		this.onEstadoCarga = oec;
+		estado = ESTA_SUBIENDO;
+		//Calculo velocidad subida
+		vel = this.r.getY() / TIEMPO_SUBIDA;
+	}
+	
 	
 
 	//-----------------------------
@@ -159,6 +208,10 @@ public class Bloque {
 	}
 	
 	
+	
+	public interface OnEstadoCarga {
+		 public abstract void descargaFinalizada();
+	}
 	
 
 }

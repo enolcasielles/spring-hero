@@ -15,6 +15,8 @@ public class ContenedorBloques {
 	private GameSceneBasic scene;
 	private float anchoMax, anchoMin, incrAltoMax;
 	
+	private Bloque bActual;
+	
 	//Modos de juego, comportamiento del contenedor
 	public enum MODO_JUEGO {
 		BASICO,
@@ -33,34 +35,20 @@ public class ContenedorBloques {
 	public ContenedorBloques(GameSceneBasic scene) {
 		this.scene = scene;
 		bloques = new ArrayList<Bloque>();
+		//Genero primer bloque
+		Bloque bloque = new Bloque(scene, 0.0f, Constants.ANCHO_PANTALLA,3*Constants.ALTO_PANTALLA/4 ,true);
+		bloques.add(bloque); 
 		//Genero el primer bloque
-		bloques.add( new Bloque(scene, 0.0f, Constants.ANCHO_PANTALLA,Constants.ALTO_PANTALLA/2 )); 
+		Bloque bloque2 = new Bloque(scene, Constants.ANCHO_PANTALLA + Constants.SEPARACION_INIT, Constants.ANCHO,Constants.ALTO_PANTALLA/2,false );
+		bloques.add(bloque2); 
 		//Almaceno el modo de juego
 		modoJuego = MODO_JUEGO.BASICO;
 		//Inicio el recolector de bloques usados
 		recolector = new BloquesPool();
+		
+		bActual = bloque2;
 	}
 	
-	/*
-	 * Genera un contenedor de bloques para el modo de juego especificado en el segundo parametro
-	 */
-	public ContenedorBloques(GameSceneBasic scene, MODO_JUEGO mod) {
-		this.scene = scene;
-		bloques = new ArrayList<Bloque>();
-		//Genero el primer bloque
-		bloques.add( new Bloque(scene, 0.0f, Constants.ANCHO_PANTALLA,Constants.ALTO_PANTALLA/2 )); 
-		anchoMax = Constants.MAX_ANCHO_INIT;
-		anchoMin = Constants.MAX_ANCHO_INIT;
-		incrAltoMax = 0;
-		//Almaceno modo de juego
-		modoJuego = mod;
-		//Inicio el recolector de bloques usados
-		recolector = new BloquesPool();
-		//Inicio el recolector con 10 bloques 
-		for (int i=0 ; i<10 ; i++) {
-			recolector.addBloque(new Bloque(scene,scene.camera.getWidth(),Constants.ANCHO,Constants.ALTO_PANTALLA/2));
-		}
-	}
 	
 	
 	
@@ -77,29 +65,45 @@ public class ContenedorBloques {
 			//Compruebo se se ha de sacar uno nuevo
 			Bloque b = bloques.get(bloques.size()-1); //Recupero el ultimo bloque
 			if (b.getPosX() < Constants.ANCHO_PANTALLA - (b.getAncho() + b.getSeparacion())) { //Añado uno nuevo
-				if (modoJuego == MODO_JUEGO.AVANZADO) {
-					float ancho = ((float)Math.random() * (anchoMax -  anchoMin)) +  anchoMin; 
-					float alto = (float)Math.random() * incrAltoMax - incrAltoMax/2;
-					alto = b.getPosY() + alto;
-					if (alto < Constants.ALTO_PANTALLA/4 ) alto = Constants.ALTO_PANTALLA/4;
-					if (alto > Constants.ALTO_PANTALLA*3/4) alto = Constants.ALTO_PANTALLA*3/4;
-					bloques.add(new Bloque(scene,scene.camera.getWidth(), ancho,alto));
-				}
 				if (modoJuego == MODO_JUEGO.BASICO) {
 					Bloque temp = recolector.getBloque();
 					if (temp==null) { //Si el recolector esta vacio genero uno nuevo
-					  bloques.add(new Bloque(scene,scene.camera.getWidth(),Constants.ANCHO,Constants.ALTO_PANTALLA/2));
+					  bloques.add(new Bloque(scene,scene.camera.getWidth(),Constants.ANCHO,Constants.ALTO_PANTALLA/2,false));
 					}
 					else { //Sino uso el del recolector, ubicandolo en su posicion
 					  temp.redefinir();
 					  bloques.add(temp);
 					}
 				}
-
 			}
+			
+			//Actualizo el bloque actual
+			if (bActual != null) bActual.update(pSecondsElapsed);
 			
 			//Ajusto la dificultad
 			if (modoJuego == MODO_JUEGO.AVANZADO) updateDificultad(score);
+	}
+	
+	
+	
+	public boolean checkActual(float x) {
+		if (bActual != null) {
+			if (x>=bActual.getPosX()+bActual.getAncho()) {  //Se ha superado
+				for (int i = 0; i< bloques.size(); i++) {
+					if (bActual == bloques.get(i)) {
+						bActual = bloques.get(i+1);  //Cojo el siguiente
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+	
+	
+	
+	public Bloque getActual() {
+		return bActual;
 	}
 	
 	

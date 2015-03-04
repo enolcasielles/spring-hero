@@ -10,6 +10,7 @@ public class Constants {
 	
 	public static float MAX_SEPARATION = 200;
 	public static float MIN_SEPARATION = 70;
+	public static float SEPARACION_INIT = 80;
 	public static float MAX_SEPARATION_NUBE = 0;
 	public static float MIN_SEPARATION_NUBE = 0;
 	public static final int MIN_Y_NUBE = 0;
