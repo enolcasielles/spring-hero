@@ -5,8 +5,6 @@ import org.andengine.ui.IGameInterface.OnCreateSceneCallback;
 
 import com.maetrik.jumpingball.scenes.BaseScene;
 import com.maetrik.jumpingball.scenes.GameSceneBasic;
-import com.maetrik.jumpingball.scenes.LoadingScene;
-import com.maetrik.jumpingball.scenes.MainMenuScene;
 import com.maetrik.jumpingball.scenes.SplashScene;
 
 
@@ -85,46 +83,36 @@ public class SceneManager
     
     
     //Metodos para cambiar entre las distintas escenas del juego
+    public void init_to_gameScene(OnCreateSceneCallback pOnCreateSceneCallback) {
+    	ResourcesManager.getInstance().loadGameResources();
+    	GameSceneBasic.setMenu(true);
+    	gameScene = new GameSceneBasic();
+    	escenaActual = gameScene;
+    	pOnCreateSceneCallback.onCreateSceneFinished(gameScene);
+    }
+    
     public void init_to_splashScene(OnCreateSceneCallback pOnCreateSceneCallback)
     {
-        ResourcesManager.getInstance().loadSplashResources();
+        //ResourcesManager.getInstance().loadSplashResources();
         splashScene = new SplashScene();
         escenaActual = splashScene;
         pOnCreateSceneCallback.onCreateSceneFinished(splashScene);
     }
     
     
-    public void splashScene_to_menuScene() {
-        ResourcesManager.getInstance().loadMenuResources();
-        menuScene = new MainMenuScene();
-        cambiar_a_escena(menuScene);
-        ResourcesManager.getInstance().unloadSplashResources();
-        splashScene.disposeScene();
-        splashScene = null;
-    }
+
     
     
-    public void menuScene_to_gameScene() {
-    	ResourcesManager.getInstance().loadGameResources();
-    	gameScene = new GameSceneBasic();
-    	cambiar_a_escena(gameScene);
-    	ResourcesManager.getInstance().unloadMenuResources();
-    	menuScene.dispose();
-    	menuScene = null;
-    	//Hacemos visible publicidad
-    	ResourcesManager.getInstance().actividad.setBannerVisibility(1,true);
-    }
-    
-    
-    public void gameScene_to_gameScene() {
+    public void gameScene_to_gameScene(boolean menu) {
     	gameScene.dispose();
+    	GameSceneBasic.setMenu(menu);
     	gameScene = new GameSceneBasic();
     	cambiar_a_escena(gameScene);
     	//Comprobamos si se ha de sacar anuncio
     	if (numeroPartidas >= numSacarAnuncio) {  //Saco anuncio
     		ResourcesManager.getInstance().actividad.displayInterstitial();
     		numeroPartidas = 0;
-    		numSacarAnuncio = (int)(Math.random()*5)+1;
+    		numSacarAnuncio = (int)(Math.random()*5)+5;
     	}
     	else { //Si no se ha de sacar comprobamos que haya uno cargado
     		ResourcesManager.getInstance().actividad.loadIntersticial();
@@ -132,37 +120,13 @@ public class SceneManager
     	}
     }
     
-    
-    public void gameScene_to_menuScene() {
-    	ResourcesManager.getInstance().loadMenuResources();
-    	menuScene = new MainMenuScene();
-    	cambiar_a_escena(menuScene);
-    	ResourcesManager.getInstance().unloadGameResources();
-    	gameScene.dispose();
-    	gameScene = null;
-    	//Hacemos invisible publicidad
-    	ResourcesManager.getInstance().actividad.setBannerVisibility(1,false);
-    	ResourcesManager.getInstance().actividad.setBannerVisibility(2,false);
-    }
+
     
     
     public void menuScene_to_exit() {
     	System.exit(0);
     }
    
-    
-    public void menuScene_to_videoScene() {
-    	
-    }
-    
-    public void videoScene_to_menuScene() {
-    	
-    }
-    
-    public void loadingScene(SceneType fromScene, SceneType toScene) {
-    	loadingScene = new LoadingScene(fromScene, toScene);
-    	cambiar_a_escena(loadingScene);
-    }
     
    
     

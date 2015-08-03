@@ -2,156 +2,104 @@ package com.maetrik.jumpingball.objetos;
 
 import static org.andengine.extension.physics.box2d.util.constants.PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT;
 
-import org.andengine.entity.primitive.Rectangle;
+import org.andengine.entity.sprite.Sprite;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
 import org.andengine.extension.physics.box2d.PhysicsFactory;
-
-import android.R.integer;
 
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.maetrik.jumpingball.Constants;
 import com.maetrik.jumpingball.scenes.GameSceneBasic;
+import com.maetrik.jumpingball.scenes.GameSceneBasic.CAPAS;
 
-public class Bloque {
+
+public class Bloque extends Sprite {
 
 	//---------------------
 	//CONSTANTS
 	//---------------------
-	private final float VELOCIDAD = 120;
-	private final float TIEMPO_SUBIDA = 0.1f;
-	
-	private final int ESTA_BAJANDO = 0;
-	private final int ESTA_SUBIENDO = 1;
-	private final int ESTA_PARADA = 2;
-	
+	private final float VELOCIDAD_MAX = 12;
+	private final float FACTOR_VELOCIDAD = 0.4288f;
 	
 	//---------------------
 	//VARIABLES
 	//---------------------
-	private Body body;
-	private Rectangle rect;
-	private Rectangle r;
-	private float posX, posY, ancho, alto;
 	private float separacion;
 	private boolean superado;
+	private float alto;
 	
-	private int estado;
-	private float vel;
-	
-	private OnEstadoCarga onEstadoCarga;
+	private Body body;
+
 	
 	
 	//---------------------
 	//CONSTRUCTORS
 	//---------------------
-	public Bloque(GameSceneBasic scene, float posX, float ancho, float alto, boolean esPrimero) {
+	public Bloque(GameSceneBasic scene, float posX, float ancho, float alto) {
+		super(posX, Constants.LAST_LINE-alto, scene.resourcesManager.texturaBloque, scene.vbom);
 		this.superado = false;
-		this.ancho = ancho;
 		this.alto = alto;
-		this.posY = Constants.ALTO_PANTALLA -  alto;
-		this.posX = posX;
 		this.separacion =
 		  (float)Math.random() * (Constants.MAX_SEPARATION - Constants.MIN_SEPARATION) + Constants.MIN_SEPARATION; 
-		rect = new Rectangle(this.posX, this.posY, this.ancho, this.alto, scene.vbom);
-		rect.setColor(0.514f,0.514f,0.514f);
-		if (!esPrimero) {
-			r = new Rectangle(0.0f, 0.0f, this.ancho, 30, scene.vbom);
-			r.setColor(1.0f, 1.0f, 1.0f);
-			rect.attachChild(r);
-		}
-		final FixtureDef wallFixtureDef = PhysicsFactory.createFixtureDef(1.0f, 0.0f, 0.0f);
-		this.body = PhysicsFactory.createBoxBody(scene.physicsWorld, rect, BodyType.StaticBody, wallFixtureDef);
+		scene.getLayer(CAPAS.CAPA_BLOQUES_HERO).attachChild(this);
 		
-		rect.setZIndex(0);
-		scene.getChild(3).attachChild(rect);
+		//Asigno el body
+		final FixtureDef objectFixtureDef = PhysicsFactory.createFixtureDef(1.0f, 0.0f, 1.0f);
+		this.body = PhysicsFactory.createBoxBody(scene.getPhysicsWorld(), this, BodyType.KinematicBody, objectFixtureDef);
 		
-		//Registro el body
-		scene.physicsWorld.registerPhysicsConnector(new PhysicsConnector(rect, this.body, true, true));
+		//Registro el conector para que el sprite siga al body
+		scene.getPhysicsWorld().registerPhysicsConnector(new PhysicsConnector(this, body, true, false));
 		
-		estado = ESTA_PARADA;
-				
 	}
 	
 	
 	public void dispose() {
-		rect.detachSelf();
-		rect.dispose();
-		rect = null;
-		body = null;
+		this.detachSelf();
+		this.dispose();
 	}
 
 	
 	//----------------------------
 	//CLASS LOGIC
 	//----------------------------
-	public void mover(float segundosPasados) {
-		if (this.body != null) {
-			this.posX -= VELOCIDAD * segundosPasados;  //EspacioRecorrido = Velocidad * tiempo
-			float x = (this.posX + this.ancho/2) / PIXEL_TO_METER_RATIO_DEFAULT;
-			float y = body.getPosition().y;
-			this.body.setTransform(x, y, 0);
-		}
+	public void iniciaMovimiento(float velocidad) {
+		this.body.setLinearVelocity(FACTOR_VELOCIDAD*velocidad*(-1), 0.0f);
+	}
+	
+	public void finalizaMovimiento() {
+		this.body.setLinearVelocity(0.0f, 0.0f);
 	}
 	
 	
-	public boolean puedeApoyar(float x, float y) {
-		if (x >= this.posX && x < this.posX + this.ancho){
-			if (y > this.posY - 30 && y < this.posY + 30) return true;
+	
+	/**
+	 * Comprueba si el heroe pasa un blouqe sin tocarlo
+	 * @param hero  El heroe
+	 * @return  True si pasa sin tocarlo, false en caso contrario
+	 */
+	public boolean check(Hero hero) {
+		if (hero.getX() > this.getX() + this.getWidth()) {  //Pasado sin tocar
+			return true;
 		}
 		return false;
 	}
 	
-	public void redefinir(float ancho, float alto) {
+	
+	public void redefinir(Bloque bloque) {
 		this.superado = false;
-		rect.setWidth(ancho);
-		rect.setHeight(alto);
-		this.posX = Constants.ANCHO_PANTALLA;
-		this.posY = Constants.ALTO_PANTALLA -  alto;
+		this.setX(bloque.getX() + bloque.getWidth() + bloque.getSeparacion());
 		this.separacion =
-		  (float)Math.random() * (Constants.MAX_SEPARATION - Constants.MIN_SEPARATION) + Constants.MIN_SEPARATION; 
-				
-	}
-	
-	public void redefinir() {
-		this.superado = false;
-		this.r.setY(0.0f);
-		this.posX = Constants.ANCHO_PANTALLA;
-		this.posY = Constants.ALTO_PANTALLA -  alto;
-		this.separacion =
-		  (float)Math.random() * (Constants.MAX_SEPARATION - Constants.MIN_SEPARATION) + Constants.MIN_SEPARATION; 		
-	}
-	
-	
-	
-	public void update(float seconds) {
-		if (estado == ESTA_BAJANDO) {
-			this.r.setY(this.r.getY()+1.5f);
-		}
+		  (float)Math.random() * (Constants.MAX_SEPARATION - Constants.MIN_SEPARATION) + Constants.MIN_SEPARATION; 	
 		
-		else if(estado == ESTA_SUBIENDO) {
-			this.r.setY(this.r.getY() - vel*seconds);
-			if (this.r.getY() <= 0) {
-				this.r.setY(0.0f);
-				estado = ESTA_PARADA;
-				onEstadoCarga.descargaFinalizada();
-			}
-		}
+		//Ajusto al body a la nueva posicion del sprite
+		final float xBody = (this.getX() + this.getWidth()/2) / PIXEL_TO_METER_RATIO_DEFAULT;  //Paso de pixeles a metros
+		final float yBody = (this.body.getPosition().y);
+		this.body.setTransform(xBody, yBody, 0.0f);
 	}
 	
-	
-	public void iniciaCarga() {
-		estado = ESTA_BAJANDO;
-	}
-	
-	public void finalizaCarga(OnEstadoCarga oec) {
-		this.onEstadoCarga = oec;
-		estado = ESTA_SUBIENDO;
-		//Calculo velocidad subida
-		vel = this.r.getY() / TIEMPO_SUBIDA;
-	}
-	
+
+
 	
 
 	//-----------------------------
@@ -164,38 +112,6 @@ public class Bloque {
 	public void setSuperado(boolean superado) {
 		this.superado = superado;
 	}
-	
-	public Body getBody() {
-		return body;
-	}
-
-	public void setBody(Body body) {
-		this.body = body;
-	}
-
-
-	public float getPosX() {
-		return posX;
-	}
-	
-	public float getPosY() {
-		return posY;
-	}
-
-
-	public void setPosX(float posX) {
-		this.posX = posX;
-	}
-
-
-	public float getAncho() {
-		return ancho;
-	}
-
-
-	public void setAncho(float ancho) {
-		this.ancho = ancho;
-	}
 
 
 	public float getSeparacion() {
@@ -207,11 +123,4 @@ public class Bloque {
 		this.separacion = separacion;
 	}
 	
-	
-	
-	public interface OnEstadoCarga {
-		 public abstract void descargaFinalizada();
-	}
-	
-
 }

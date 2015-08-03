@@ -1,38 +1,30 @@
 package com.maetrik.jumpingball.scenes;
 
-import org.andengine.entity.IEntity;
-import org.andengine.entity.modifier.MoveXModifier;
-import org.andengine.entity.modifier.MoveYModifier;
+import java.util.HashMap;
+
+import org.andengine.entity.Entity;
 import org.andengine.entity.scene.IOnSceneTouchListener;
-import org.andengine.entity.scene.ITouchArea;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.Background;
-import org.andengine.entity.sprite.Sprite;
-import org.andengine.entity.text.Text;
-import org.andengine.entity.text.TextOptions;
-import org.andengine.extension.physics.box2d.FixedStepPhysicsWorld;
+import org.andengine.extension.physics.box2d.PhysicsWorld;
 import org.andengine.input.touch.TouchEvent;
-import org.andengine.util.HorizontalAlign;
 
-import android.content.Entity;
 import android.hardware.SensorManager;
-import android.util.Log;
 
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.Contact;
-import com.badlogic.gdx.physics.box2d.ContactImpulse;
-import com.badlogic.gdx.physics.box2d.ContactListener;
-import com.badlogic.gdx.physics.box2d.Fixture;
-import com.badlogic.gdx.physics.box2d.Manifold;
 import com.maetrik.jumpingball.Constants;
-import com.maetrik.jumpingball.R;
 import com.maetrik.jumpingball.SceneManager;
-import com.maetrik.jumpingball.Utils;
 import com.maetrik.jumpingball.SceneManager.SceneType;
-import com.maetrik.jumpingball.objetos.Bola;
+import com.maetrik.jumpingball.Utils;
 import com.maetrik.jumpingball.objetos.ContenedorBloques;
 import com.maetrik.jumpingball.objetos.ContenedorNubes;
-import com.maetrik.jumpingball.objetos.Bloque.OnEstadoCarga;
+import com.maetrik.jumpingball.objetos.Hero;
+import com.maetrik.jumpingball.objetos.Mar;
+import com.maetrik.jumpingball.objetos.Mountains;
+import com.maetrik.jumpingball.objetos.Number;
+import com.maetrik.jumpingball.objetos.Pajaro;
+import com.maetrik.jumpingball.objetos.Pajaro2;
+import com.maetrik.jumpingball.objetos.Suelo;
 
 
 
@@ -46,29 +38,48 @@ public class GameSceneBasic extends BaseScene implements IOnSceneTouchListener  
 	//VARIABLES
 	//-----------------------------------	
 	
-	private Bola saltador;
-	private boolean puedeSaltar;
+	private Hero heroe;
 	private ContenedorBloques bloques;
 	private ContenedorNubes nubes;
+	private Mountains mountains;
+	private Suelo suelo;
+	private Pajaro pajaro;
+	private Pajaro2 pajaro2;
+	private Mar mar;
 	
 	private boolean comienza;
 	
-	private Text texto;
-	private Text scoreText;
-	private float posX, posY;
-	private int score;
+	private Number scoreText;
 	private boolean nuevoRecord;
 	private boolean finPartida;
-
 	
-	FinalMenuDialog fms;
+	private FinalMenu menuFinal;
+	private InicialMenu menuInicial;
 	
-	org.andengine.entity.Entity[] layerFondo;
+	public enum CAPAS {
+		CAPA_MOUNTAINS,
+		CAPA_NUBES,
+		CAPA_SUELO_ARBOLES,
+		CAPA_MAR_1,
+		CAPA_BLOQUES_HERO,
+		CAPA_MAR_2,
+		CAPA_MAR_3,
+		CAPA_PAJARO,
+		CAPA_MENUS
+	};
+	private HashMap<CAPAS, Entity> capas;
+	
+	//Objeto para controlar el motor de fisicas
+	private PhysicsWorld physicsWorld;
 	
 	
-	private OnEstadoCarga onEstadoCarga;
-	
-	private boolean esPrimero;
+	//Estado
+	private enum ESTADO {
+		MENU_INICIAL,
+		MENU_FINAL,
+		JUEGO
+	};
+	private static ESTADO estado;
 	
 	
 	//-----------------------------------
@@ -76,8 +87,9 @@ public class GameSceneBasic extends BaseScene implements IOnSceneTouchListener  
 	//-----------------------------------	
 	@Override
 	public void createScene() {
+		initPhysics();
+		initMusic();
 		initializeVariabes();
-		createPhysics();
 		createBackground();
 		createObjects();
 	}
@@ -87,17 +99,25 @@ public class GameSceneBasic extends BaseScene implements IOnSceneTouchListener  
 		resourcesManager.sonidoBoton.stop();
 		resourcesManager.sonidoCargar.stop();
 		resourcesManager.sonidoSaltar.stop();
-		resourcesManager.musica.pause();
-		resourcesManager.musica.seekTo(0);
-		SceneManager.getInstance().loadingScene(SceneType.SCENE_GAME, SceneType.SCENE_MENU);
+		resourcesManager.sonidoCaer.stop();
+		resourcesManager.musica_mar.pause();
+		resourcesManager.musica_mar.seekTo(0);
+		resourcesManager.musica_pajaro.pause();
+		resourcesManager.musica_pajaro.seekTo(0);
+		SceneManager.getInstance().gameScene_to_gameScene(true);
 	}
 
 	@Override 
 	public void disposeScene() {
-		if(fms != null) fms.destructor();
-		saltador.dispose();
+		heroe.dispose();
 		bloques.dispose();
 		nubes.dispose();
+		mar.dispose();
+		mountains.dispose();
+		pajaro.dispose();
+		pajaro2.dispose();
+		suelo.dispose();
+		heroe.dispose();
 	}
 	
 	
@@ -110,68 +130,86 @@ public class GameSceneBasic extends BaseScene implements IOnSceneTouchListener  
 	
 	
 	
+	public static void setMenu(boolean menu) {
+		if (menu) {
+			estado = ESTADO.MENU_INICIAL;
+		}
+		else estado = ESTADO.JUEGO;
+	}
+	
+	
+	public void iniciar() {
+		estado = ESTADO.JUEGO;
+		menuInicial.setVisible(false);
+		scoreText.setNumber(0, Constants.ANCHO_PANTALLA/2, Constants.FIRST_LINE + Constants.Y_SCORE);
+		scoreText.setVisible(true);
+	}
+	
+
 	@Override
 	protected void onManagedUpdate(float pSecondsElapsed) {
 		super.onManagedUpdate(pSecondsElapsed);
 		
 		if (!finPartida) {  //Si la partida no ha finalizado actualizo
 			
-			//Cargo el salto, el sabra si ha de aumentar o no
-			saltador.cargar();
 			
-			//Compruebo si ha perdido
-			if (saltador.estaMuerto()) {
-				saltador.finalizarCarga();  //Por si estaba cargando al finalizar
-				//Has muerto
-				
+			//Compruebo si el heroe ha muerto
+			if (heroe.estaMuerto()) {
 				//Almaceno record por si ha sido actualizado
 				Utils.saveRecord();
 				
 				//Indico que no se necesita musica
-				Constants.MUSIC=false;
+				Constants.MUSIC=false;			
 				
-				resourcesManager.musica.pause();
-				resourcesManager.musica.seekTo(0);
-				resourcesManager.sonidoSaltar.stop();
-				resourcesManager.sonidoCargar.stop();
-				scoreText.detachSelf();
 				scoreText.dispose();
-				saltador.setVisible(false);
-				fms = new FinalMenuDialog(this,score,nuevoRecord);
-				fms.attachToScene(this);
-				fms.show();
-				finPartida = true;  //La partida ha finalizado
+				scoreText = null;
 				
-				/*
+				finPartida = true;  //La partida ha finalizado
+				estado = ESTADO.MENU_FINAL;
+				
+				//Saco el menu final
+				FinalMenu.setRecordAndBest(heroe.getScore(), (int)Constants.RECORD);
+				menuFinal.setVisible(true);
+				
+				
 				//Oculto el boton
-				MoveXModifier move1 = new MoveXModifier(0.3f, botonCarga.getX(), camera.getWidth());
-				botonCarga.registerEntityModifier(move1);
-				botonCargaDinamico.registerEntityModifier(move1);
-				*/
+				//MoveXModifier move1 = new MoveXModifier(0.3f, botonCarga.getX(), camera.getWidth());
+				//botonCarga.registerEntityModifier(move1);
+				//botonCargaDinamico.registerEntityModifier(move1);
+				
 			}
 			
-			
-			if (comienza == true) {  //Ya ha comenzado
-				bloques.update(pSecondsElapsed,score);
-				nubes.update(pSecondsElapsed, score);
-				if (bloques.checkActual(saltador.getX())) { 
-					score++;
-					scoreText.setText(""+score);
-					if (score > Constants.RECORD) {
-						Constants.RECORD = score;
-						nuevoRecord = true;
-					}
-					//Compruebo logros
-					if (score==10) this.resourcesManager.actividad.newLogro(this.activity.getString(R.string.achievement_score10));
-					if (score==25) this.resourcesManager.actividad.newLogro(this.activity.getString(R.string.achievement_score25));
-					if (score==50) this.resourcesManager.actividad.newLogro(this.activity.getString(R.string.achievement_score50));
-					if (score==100) this.resourcesManager.actividad.newLogro(this.activity.getString(R.string.achievement_score100));
-					if (score==250) this.resourcesManager.actividad.newLogro(this.activity.getString(R.string.achievement_score250));
-				}
+			else {  //Actualizo todos los objetos
+				mountains.update(pSecondsElapsed);
+				suelo.update(pSecondsElapsed);
+				mar.update(pSecondsElapsed);
 			}
 			
 		}
 		
+		
+		//Las nubes se actualizan siempre
+		nubes.update(pSecondsElapsed);
+		
+	}
+	
+	
+	public void setScore(int score) {
+		scoreText.setNumber(score, Constants.ANCHO_PANTALLA/2, Constants.FIRST_LINE + Constants.Y_SCORE);
+	}
+	
+	
+	
+	public PhysicsWorld getPhysicsWorld() {
+		return physicsWorld;
+	}
+	
+	
+	/**
+	 * Devuelve la capa solicitada
+	 */
+	public Entity getLayer(CAPAS capa) {
+		return capas.get(capa);
 	}
 	
 	
@@ -179,27 +217,17 @@ public class GameSceneBasic extends BaseScene implements IOnSceneTouchListener  
 	//INTERFACE METHODS
 	//-----------------------------------	
 	public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
-		if (physicsWorld != null && !finPartida) {
-			if (pSceneTouchEvent.isActionUp() && comienza == false) {  //Solo se dara el primer tap
-				resourcesManager.musica.play();
-				comienza = true;  //Comienza la partida 
-				texto.detachSelf();
-				texto.dispose();
-				texto = null;
-				return true;
-			}
+		if (estado == ESTADO.JUEGO) {
 			if (pSceneTouchEvent.isActionDown() && comienza == true ) {
-				resourcesManager.sonidoCargar.play();
-				saltador.comienzaCarga();
-				if (bloques.getActual()!=null) bloques.getActual().iniciaCarga();
+				//resourcesManager.sonidoCargar.play();
+				heroe.iniciarCarga();
 				return true;
 			}
 			if (pSceneTouchEvent.isActionUp() && comienza == true ) {
 				//Genero un salto si estoy en una posicion que pueda saltar
 				resourcesManager.sonidoCargar.stop();
 				resourcesManager.sonidoSaltar.play();
-				saltador.finalizarCarga();
-				if (bloques.getActual()!=null) bloques.getActual().finalizaCarga(onEstadoCarga);
+				heroe.finalizaCarga();
 				return true;
 			}
 		}
@@ -210,146 +238,112 @@ public class GameSceneBasic extends BaseScene implements IOnSceneTouchListener  
 	//-----------------------------------
 	//PRIVATE CLASS METHODS
 	//-----------------------------------	
+	
+	private void initPhysics() {
+	    physicsWorld = new PhysicsWorld(new Vector2(0, SensorManager.GRAVITY_EARTH), false);
+	    this.registerUpdateHandler(physicsWorld);
+	}
+	
+	
+	private void initMusic() {
+		resourcesManager.musica_mar.play();
+		resourcesManager.musica_pajaro.play();
+	}
+	
 	private void initializeVariabes() {
-		score = -1;	
-		comienza = false;
-		puedeSaltar = true;
+		comienza = true;
 		nuevoRecord = false;
 		finPartida = false;
 		Constants.MUSIC = true;
 		this.setOnSceneTouchListener(this);
-		onEstadoCarga = new OnEstadoCarga() {
-			@Override
-			public void descargaFinalizada() {
-				if (puedeSaltar) {
-					saltador.saltar();
-				}
-			}
-		};
-		esPrimero = true;
+		capas = new HashMap<GameSceneBasic.CAPAS, Entity>();
 	}
-	
-	private void createPhysics() {
-		physicsWorld = new FixedStepPhysicsWorld(60, new Vector2(0, SensorManager.GRAVITY_EARTH), false); 
-	    registerUpdateHandler(physicsWorld);
-	    physicsWorld.setContactListener(contactListener());
-	}
+
 	
 	private void createBackground() {
 		
 		//Posicion camara
 		camera.setCenter(camera.getWidth()/2, camera.getHeight()/2);
 		
-		layerFondo = new org.andengine.entity.Entity[4];
-		//Capa para añadir posteriomente nubes y bloques y que queden por detras
-		 layerFondo[0] = new org.andengine.entity.Entity();
-		 this.attachChild(layerFondo[0]);
-		 
-		 layerFondo[1] = new org.andengine.entity.Entity();
-		 this.attachChild(layerFondo[1]);
-		 
-		 layerFondo[2] = new org.andengine.entity.Entity();
-		 this.attachChild(layerFondo[2]);
+		//Inicio las capas
+		Entity tmp = new Entity();
+		capas.put(CAPAS.CAPA_MOUNTAINS, tmp);
+		this.attachChild(tmp);
 		
-		 layerFondo[3] = new org.andengine.entity.Entity();
-		 this.attachChild(layerFondo[3]);
+		tmp = new Entity();
+		capas.put(CAPAS.CAPA_NUBES, tmp);
+		this.attachChild(tmp);
+		
+		tmp = new Entity();
+		capas.put(CAPAS.CAPA_SUELO_ARBOLES, tmp);
+		this.attachChild(tmp);
+		
+		tmp = new Entity();
+		capas.put(CAPAS.CAPA_MAR_1, tmp);
+		this.attachChild(tmp);
+		
+		tmp = new Entity();
+		capas.put(CAPAS.CAPA_BLOQUES_HERO, tmp);
+		this.attachChild(tmp);
+		
+		tmp = new Entity();
+		capas.put(CAPAS.CAPA_MAR_2, tmp);
+		this.attachChild(tmp);
+		
+		tmp = new Entity();
+		capas.put(CAPAS.CAPA_MAR_3, tmp);
+		this.attachChild(tmp);
+		
+		tmp = new Entity();
+		capas.put(CAPAS.CAPA_PAJARO, tmp);
+		this.attachChild(tmp);
+		
+		tmp = new Entity();
+		capas.put(CAPAS.CAPA_MENUS, tmp);
+		this.attachChild(tmp);
 		
 		 //Cargo el fondo
-		setBackground(new Background(0.392f, 0.584f, 0.929f));
-		
-		texto = new Text(0, 0, resourcesManager.fuenteGame, "Tap to start!", new TextOptions(HorizontalAlign.LEFT), vbom); 
-	    texto.setPosition(camera.getWidth()/2 - texto.getWidth() / 2, camera.getHeight()/3);
-	    texto.setScale(1.2f);
-	    this.attachChild(texto);
-	    
-	    scoreText = new Text(0, 0, resourcesManager.fuenteGame, "0123456789", new TextOptions(HorizontalAlign.LEFT), vbom); 
-	    scoreText.setText("0");
-	    scoreText.setPosition(camera.getWidth()/2, 5);
-	    scoreText.setScale(1.5f);
-	    this.attachChild(scoreText);
-	    
-	    this.sortChildren();
+		setBackground(new Background(Constants.FONDO_R, Constants.FONDO_G, Constants.FONDO_B));
 		
 	}
-	
-	public org.andengine.entity.Entity getChild(int i) {
-		return layerFondo[i];
-	}
-	
+
 	
 	private void createObjects() {
-		//Creo el objeto que manejara y representara al saltador
-		saltador = new Bola(this);
-		//Inicio el contenedor de objetos
+		//Genero el contenedor de bloques
 		bloques = new ContenedorBloques(this);
+		//Creo el objeto que manejara y representara al saltador
+		heroe = new Hero(this,bloques);
 		//Inicio el contenedor de nubes
 		nubes = new ContenedorNubes(this);
+		//Inicio las montañas
+		mountains = new Mountains(this,heroe);
+		//Inicio el suelo
+		suelo = new Suelo(this,heroe);
+		//Inicio el mar
+		mar = new Mar(this,heroe);
+		//Inicio los pajaros
+		pajaro = new Pajaro(this, bloques, heroe);
+		pajaro2 = new Pajaro2(this);
+		
+		//Creo el menu final
+		menuFinal = new FinalMenu(this);
+		
+		//Creo el menu inicial
+		menuInicial = new InicialMenu(this);
+		if (estado == ESTADO.MENU_INICIAL) menuInicial.setVisible(true);
+		if (estado==ESTADO.JUEGO) menuInicial.setVisible(false);
+		
+		//Numero para el score
+		scoreText = new Number(this);
+		if(estado == ESTADO.JUEGO) {
+			scoreText.setNumber(0, Constants.ANCHO_PANTALLA/2, Constants.FIRST_LINE + Constants.Y_SCORE);
+			scoreText.setVisible(true);
+		}
 	}
 	
 	
 	
-	private ContactListener contactListener()
-	{
-	    ContactListener contactListener = new ContactListener()
-	    {
-	        public void beginContact(Contact contact)
-	        {
-	        	
-	        	if(saltador.getX() + saltador.getWidth()/2 >= bloques.getActual().getPosX()) puedeSaltar = true;
-	        	else puedeSaltar = false;
-	            final Fixture x1 = contact.getFixtureA();
-	            final Fixture x2 = contact.getFixtureB();
-
-	            if (x1.getBody().getUserData() != null && x2.getBody().getUserData() != null)
-	            {
-	                if (x2.getBody().getUserData().equals("saltador"))
-	                {
-	                    puedeSaltar = true;
-	                }
-	            }
-	            
-	        	
-	        	/*
-	        	if (!esPrimero) {
-	        		float d =bloques.getActual().getSeparacion() + Constants.ANCHO;
-	        		float salto = d*SensorManager.GRAVITY_EARTH*(-1.0f) / 240.0f;
-	        		saltador.saltar(salto);
-	        	}
-	        	else {
-	        		esPrimero = false;
-	        	}
-	        	*/
-	        	
-	        }
-
-	        public void endContact(Contact contact)
-	        {
-	        	puedeSaltar = false;
-	            final Fixture x1 = contact.getFixtureA();
-	            final Fixture x2 = contact.getFixtureB();
-
-	            if (x1.getBody().getUserData() != null && x2.getBody().getUserData() != null)
-	            {
-	                if (x2.getBody().getUserData().equals("saltador"))
-	                {
-	                    puedeSaltar = false;
-	                }
-	            }
-	        }
-
-	        public void preSolve(Contact contact, Manifold oldManifold)
-	        {
-
-	        }
-
-	        public void postSolve(Contact contact, ContactImpulse impulse)
-	        {
-
-	        }
-	    };
-	    return contactListener;
-	}
 	
-
+	
 	
 }

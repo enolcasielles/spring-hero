@@ -3,27 +3,18 @@ package com.maetrik.jumpingball.objetos;
 import java.util.ArrayList;
 
 import android.R.integer;
+import android.util.Log;
 
 import com.maetrik.jumpingball.Constants;
+import com.maetrik.jumpingball.Utils;
 import com.maetrik.jumpingball.scenes.BaseScene;
 import com.maetrik.jumpingball.scenes.GameSceneBasic;
 
 public class ContenedorBloques {
 	
 	private ArrayList<Bloque> bloques;
-	private BloquesPool recolector;
 	private GameSceneBasic scene;
 	private float anchoMax, anchoMin, incrAltoMax;
-	
-	private Bloque bActual;
-	
-	//Modos de juego, comportamiento del contenedor
-	public enum MODO_JUEGO {
-		BASICO,
-		AVANZADO
-	};
-	
-	private MODO_JUEGO modoJuego;
 	
 	
 	//-----------------------------------------------------------
@@ -35,88 +26,78 @@ public class ContenedorBloques {
 	public ContenedorBloques(GameSceneBasic scene) {
 		this.scene = scene;
 		bloques = new ArrayList<Bloque>();
-		//Genero primer bloque
-		Bloque bloque = new Bloque(scene, 0.0f, Constants.ANCHO_PANTALLA,3*Constants.ALTO_PANTALLA/4 ,true);
-		bloques.add(bloque); 
-		//Genero el primer bloque
-		Bloque bloque2 = new Bloque(scene, Constants.ANCHO_PANTALLA + Constants.SEPARACION_INIT, Constants.ANCHO,Constants.ALTO_PANTALLA/2,false );
-		bloques.add(bloque2); 
-		//Almaceno el modo de juego
-		modoJuego = MODO_JUEGO.BASICO;
-		//Inicio el recolector de bloques usados
-		recolector = new BloquesPool();
 		
-		bActual = bloque2;
+		//Genero primer bloque
+		Bloque bloque =  new Bloque(scene, 100, Constants.ANCHO_BLOQUES,Utils.aleatorioEntre(Constants.MIN_ALTO_BLOQUES, Constants.MAX_ALTO_BLOQUES) );
+		bloque.setSuperado(true);
+		bloques.add(bloque);
+		
+		//Genero los otros 4 bloques bloques
+		for (int i=0 ; i<4 ; i++) {
+			Bloque b = new Bloque(scene, bloques.get(i).getX() + bloques.get(i).getSeparacion(), Constants.ANCHO_BLOQUES,Utils.aleatorioEntre(Constants.MIN_ALTO_BLOQUES, Constants.MAX_ALTO_BLOQUES));
+			bloques.add(b);
+		}
 	}
 	
 	
 	
-	
-	public void update(float pSecondsElapsed, float score) {
-			//Compruebo si ha salido el bloque inicial
-			if (bloques.get(0).getPosX() + bloques.get(0).getAncho() < 0) { //Lo elimino
-				recolector.addBloque(bloques.get(0)); //Añado el bloque al recolector
-				bloques.remove(0); //Lo elimino del array
-			}
-			//Muevo todos
-			for (Bloque b : bloques) {
-				b.mover(pSecondsElapsed);
-			}
-			//Compruebo se se ha de sacar uno nuevo
-			Bloque b = bloques.get(bloques.size()-1); //Recupero el ultimo bloque
-			if (b.getPosX() < Constants.ANCHO_PANTALLA - (b.getAncho() + b.getSeparacion())) { //Añado uno nuevo
-				if (modoJuego == MODO_JUEGO.BASICO) {
-					Bloque temp = recolector.getBloque();
-					if (temp==null) { //Si el recolector esta vacio genero uno nuevo
-					  bloques.add(new Bloque(scene,scene.camera.getWidth(),Constants.ANCHO,Constants.ALTO_PANTALLA/2,false));
-					}
-					else { //Sino uso el del recolector, ubicandolo en su posicion
-					  temp.redefinir();
-					  bloques.add(temp);
-					}
+	/**
+	 * Actualiza el bloque que el heroe ha de controlar. Redefine el conjunto de bloques cuando el primero se 
+	 * sale de la pantalla
+	 * @param hero  El heroe con el que realizar las comprobaciones
+	 */
+	public void update(Hero hero) {
+		
+		//Compruebo si el primero se ha salido
+		if (bloques.get(0).getX() + bloques.get(0).getWidth() < 0) { //Lo elimino
+			Bloque bTemp = bloques.get(0);  //Almaceno temporalmente el primer bloque
+			bloques.remove(0);  //Lo elimino del array
+			bTemp.redefinir(bloques.get(bloques.size()-1));  //Lo redefino a partir del ultimo
+			bloques.add(bTemp); //Lo a�ado de nuevo
+		}
+		
+		//Compruebo que bloque ha de observar el heroe, el primero que este sin superar
+		for (int i=0 ; i<bloques.size() ; i++) {
+			Bloque bloque = bloques.get(i);
+			if (!bloque.isSuperado()) {
+				hero.registerBloque(bloque);
+				 //Compruebo que no sobrepase el bloque sin tocarlo
+				if (bloque.check(hero)) {  //PAsado sin tocar
+					 bloque.setSuperado(true);
+					 hero.registerBloque(bloques.get(i+1));  //Registro como observador el siguiente bloque
+					 hero.aumentaMultiplicdor();
 				}
-			}
-			
-			//Actualizo el bloque actual
-			if (bActual != null) bActual.update(pSecondsElapsed);
-			
-			//Ajusto la dificultad
-			if (modoJuego == MODO_JUEGO.AVANZADO) updateDificultad(score);
-	}
-	
-	
-	
-	public boolean checkActual(float x) {
-		if (bActual != null) {
-			if (x>=bActual.getPosX()+bActual.getAncho()) {  //Se ha superado
-				for (int i = 0; i< bloques.size(); i++) {
-					if (bActual == bloques.get(i)) {
-						bActual = bloques.get(i+1);  //Cojo el siguiente
-						return true;
-					}
-				}
+				break;   //Salimos del for
 			}
 		}
-		return false;
 	}
 	
 	
-	
-	public Bloque getActual() {
-		return bActual;
+	/**
+	 * Recupera un bloque del contenedor a partir de su indice
+	 */
+	public Bloque getBloque(int index) {
+		return bloques.get(index);
 	}
 	
 	
-	public boolean nuevoSuperado(float x) {
-		//Compruebo si hay algun bloque nuevo superado
-		for (int i = 0; i< bloques.size(); i++) {
-			Bloque b = bloques.get(i);
-			if (b.getPosX() < x && b.isSuperado() == false) { 
-				b.setSuperado(true);
-				return true;
-			}
+	/**
+	 * Activa el movimiento en todos los bloques
+	 */
+	public void iniciaMovimiento(float velocidad) {
+		for (Bloque bloque : bloques) {
+			bloque.iniciaMovimiento(velocidad);
 		}
-		return false;
+	}
+	
+	
+	/**
+	 * Finaliza movimiento en todos los bloques
+	 */
+	public void finalizaMovimiento() {
+		for (Bloque bloque : bloques) {
+			bloque.finalizaMovimiento();
+		}
 	}
 	
 	
@@ -125,34 +106,8 @@ public class ContenedorBloques {
 			bloques.get(i).dispose();
 		}
 		bloques.clear();
-		recolector.dispose();
 	}
 	
 	
-	private void updateDificultad(float score) {
-		if (score < 10) { //Si esta entre 0 y 9
-			
-		}
-		else if (score < 20 ) {  //Si esta entre 10 y 19
-			if (anchoMax == Constants.MAX_ANCHO_INIT) {
-				anchoMax /= 2;
-				anchoMin /= 2;
-			}
-		}
-		else if (score < 50) {  //Si esta entre 20 y 49
-		  if (anchoMin > Constants.MIN_ANCHO_INIT) {
-				anchoMax-=0.1;
-				anchoMin-=0.1;
-		  }
-		}
-		else if (score < 80) {  //Si esta entre 50 y 79
-			if (incrAltoMax < Constants.INCR_ALTO_MAX_INIT) {
-				incrAltoMax++;	
-			}
-		}
-		else {  //Si es 80 o mayor
-			
-		}
-	}
 
 }

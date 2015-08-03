@@ -7,6 +7,7 @@ import android.R.integer;
 import com.google.android.gms.games.Game;
 import com.maetrik.jumpingball.Constants;
 import com.maetrik.jumpingball.ResourcesManager;
+import com.maetrik.jumpingball.Utils;
 import com.maetrik.jumpingball.scenes.BaseScene;
 import com.maetrik.jumpingball.scenes.GameSceneBasic;
 
@@ -29,9 +30,9 @@ public class ContenedorNubes {
 		this.scene = scene;
 		nubes = new ArrayList<Nube>();
 		//Genero el primer bloque
-		nubes.add(new Nube(scene, Constants.ANCHO_PANTALLA, 
-				(float)Math.random() * (Constants.MAX_Y_NUBE - Constants.MIN_Y_NUBE) + Constants.MIN_Y_NUBE, 
-				scene.resourcesManager.texturasNube[(int)(Math.random()*ResourcesManager.NUM_NUBES)]));
+		nubes.add(new Nube(scene, Constants.ANCHO_PANTALLA,
+				Constants.FIRST_LINE + Utils.aleatorioEntre(Constants.MIN_Y_NUBE, Constants.MAX_Y_NUBE),
+				scene.resourcesManager.texturasNube[(int)(Math.random()*Constants.NUM_NUBES)]));
 		//Inicio el recolector de bloques usados
 		recolector = new NubesPool();
 	}
@@ -39,7 +40,7 @@ public class ContenedorNubes {
 	
 	
 	
-	public void update(float pSecondsElapsed, float score) {
+	public void update(float pSecondsElapsed) {
 			//Compruebo si ha salido el bloque inicial
 			if (nubes.get(0).getSprite().getX() + nubes.get(0).getSprite().getWidth() < 0) { //Lo elimino
 				recolector.addBloque(nubes.get(0)); //Añado el bloque al recolector
@@ -55,8 +56,8 @@ public class ContenedorNubes {
 				Nube temp = recolector.getBloque();
 				if (temp==null) { //Si el recolector esta vacio genero uno nuevo
 					nubes.add(new Nube(scene, scene.camera.getWidth(), 
-					    (float)Math.random() * (Constants.MAX_Y_NUBE - Constants.MIN_Y_NUBE) + Constants.MIN_Y_NUBE, 
-						scene.resourcesManager.texturasNube[(int)(Math.random()*ResourcesManager.NUM_NUBES)]));
+						Constants.FIRST_LINE + Utils.aleatorioEntre(Constants.MIN_Y_NUBE, Constants.MAX_Y_NUBE),
+						scene.resourcesManager.texturasNube[(int)(Math.random()*Constants.NUM_NUBES)]));
 				}
 				else { //Sino uso el del recolector, ubicandolo en su posicion
 				  temp.redefinir();

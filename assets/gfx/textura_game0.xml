@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<texture version="1" file="texture0.png" type="bitmap" width="1024" height="833" pixelformat="RGBA_8888" minfilter="linear" magfilter="linear" wrapt="clamp" wraps="clamp" premultiplyalpha="false">
+    <!-- Created with TexturePacker http://www.codeandweb.com/texturepacker -->
+    <!-- $TexturePacker:SmartUpdate:fcf21664ca4550243baf90b0ecd60078:1ed8b559a6ef0439dcfbf373828b3852:d7b1d52f675bc75ae6cc3154e87da6de$ -->
+    <textureregion id="0" src="botonFace.png" x="52" y="695" width="48" height="48" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="48" srcheight="48"/>
+    <textureregion id="1" src="botonHome.png" x="102" y="695" width="48" height="48" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="48" srcheight="48"/>
+    <textureregion id="2" src="botonNoadd.png" x="956" y="415" width="48" height="48" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="48" srcheight="48"/>
+    <textureregion id="3" src="botonNovolumen.png" x="956" y="465" width="48" height="48" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="48" srcheight="48"/>
+    <textureregion id="4" src="botonPlay.png" x="152" y="266" width="96" height="96" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="96" srcheight="96"/>
+    <textureregion id="5" src="botonRanking.png" x="152" y="670" width="48" height="48" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="48" srcheight="48"/>
+    <textureregion id="6" src="botonRate.png" x="202" y="670" width="48" height="48" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="48" srcheight="48"/>
+    <textureregion id="7" src="botonReplay.png" x="152" y="364" width="96" height="96" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="96" srcheight="96"/>
+    <textureregion id="8" src="botonVolumen.png" x="252" y="670" width="48" height="48" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="48" srcheight="48"/>
+    <textureregion id="9" src="textura0.png" x="131" y="266" width="15" height="21" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="15" srcheight="21"/>
+    <textureregion id="10" src="textura1.png" x="131" y="289" width="15" height="21" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="15" srcheight="21"/>
+    <textureregion id="11" src="textura2.png" x="131" y="312" width="15" height="21" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="15" srcheight="21"/>
+    <textureregion id="12" src="textura3.png" x="131" y="335" width="15" height="21" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="15" srcheight="21"/>
+    <textureregion id="13" src="textura4.png" x="131" y="358" width="15" height="21" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="15" srcheight="21"/>
+    <textureregion id="14" src="textura5.png" x="131" y="381" width="15" height="21" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="15" srcheight="21"/>
+    <textureregion id="15" src="textura6.png" x="131" y="404" width="15" height="21" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="15" srcheight="21"/>
+    <textureregion id="16" src="textura7.png" x="131" y="427" width="15" height="21" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="15" srcheight="21"/>
+    <textureregion id="17" src="textura8.png" x="131" y="450" width="15" height="21" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="15" srcheight="21"/>
+    <textureregion id="18" src="textura9.png" x="956" y="391" width="15" height="21" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="15" srcheight="21"/>
+    <textureregion id="19" src="texturaArbol1.png" x="52" y="266" width="77" height="141" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="77" srcheight="141"/>
+    <textureregion id="20" src="texturaArbol2.png" x="52" y="409" width="77" height="141" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="77" srcheight="141"/>
+    <textureregion id="21" src="texturaArbol3.png" x="52" y="552" width="77" height="141" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="77" srcheight="141"/>
+    <textureregion id="22" src="texturaBloque.png" x="2" y="266" width="48" height="481" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="48" srcheight="481"/>
+    <textureregion id="23" src="texturaGameover.png" x="753" y="266" width="256" height="57" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="256" srcheight="57"/>
+    <textureregion id="24" src="texturaHeroe.png" x="935" y="515" width="80" height="55" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="80" srcheight="55"/>
+    <textureregion id="25" src="texturaMar1.png" x="260" y="266" width="491" height="125" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="491" srcheight="125"/>
+    <textureregion id="26" src="texturaMar2.png" x="260" y="393" width="491" height="125" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="491" srcheight="125"/>
+    <textureregion id="27" src="texturaMar3.png" x="260" y="520" width="491" height="125" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="491" srcheight="125"/>
+    <textureregion id="28" src="texturaMountain.png" x="2" y="2" width="1020" height="262" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="1020" srcheight="262"/>
+    <textureregion id="29" src="texturaMuelle.png" x="976" y="382" width="33" height="31" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="33" srcheight="31"/>
+    <textureregion id="30" src="texturaNombre.png" x="753" y="391" width="201" height="100" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="201" srcheight="100"/>
+    <textureregion id="31" src="texturaNube1.png" x="753" y="587" width="165" height="98" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="165" srcheight="98"/>
+    <textureregion id="32" src="texturaNube2.png" x="131" y="745" width="127" height="86" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="127" srcheight="86"/>
+    <textureregion id="33" src="texturaNube3.png" x="260" y="720" width="159" height="101" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="159" srcheight="101"/>
+    <textureregion id="34" src="texturaNube4.png" x="753" y="493" width="180" height="92" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="180" srcheight="92"/>
+    <textureregion id="35" src="texturaNube5.png" x="2" y="749" width="127" height="73" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="127" srcheight="73"/>
+    <textureregion id="36" src="texturaNumbers.png" x="131" y="647" width="150" height="21" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="150" srcheight="21"/>
+    <textureregion id="37" src="texturaOjos.png" x="976" y="325" width="40" height="55" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="40" srcheight="55"/>
+    <textureregion id="38" src="texturaPajaro.png" x="152" y="462" width="90" height="18" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="90" srcheight="18"/>
+    <textureregion id="39" src="texturaResultado.png" x="753" y="325" width="221" height="64" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="221" srcheight="64"/>
+    <textureregion id="40" src="texturaSuelo.png" x="421" y="696" width="491" height="125" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="491" srcheight="125"/>
+    <textureregion id="41" src="textureNorma.png" x="302" y="647" width="161" height="47" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="161" srcheight="47"/>
+</texture>

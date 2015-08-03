@@ -1,25 +1,33 @@
 package com.maetrik.jumpingball.scenes;
 
+import org.andengine.entity.modifier.MoveYModifier;
 import org.andengine.entity.scene.background.Background;
+import org.andengine.entity.scene.background.SpriteBackground;
 import org.andengine.entity.sprite.AnimatedSprite;
+import org.andengine.entity.sprite.Sprite;
 
+import android.R.integer;
+
+import com.maetrik.jumpingball.Constants;
 import com.maetrik.jumpingball.SceneManager.SceneType;
 
 public class SplashScene extends BaseScene {
 	
-	private AnimatedSprite splash;
+	private Sprite splash, splash2;
 
 	@Override
 	public void createScene() {
 		
-		setBackground(new Background(0.796f,0.796f,0.796f));
+		float y1 = Constants.FIRST_LINE;
+		float y2 = Constants.LAST_LINE;
 		
-		splash = new AnimatedSprite(0, 0, resourcesManager.texturaSplash, vbom);
-		splash.setScale(0.7f);
-		splash.animate(200);
-		splash.setPosition(camera.getWidth() / 2 - splash.getWidth() / 2, 
-				camera.getHeight() / 2 - splash.getHeight() / 2);
+		//splash = new Sprite(Constants.ANCHO_PANTALLA/2, Constants.FIRST_LINE, resourcesManager.texturaSplash, vbom);
+		//splash2 = new Sprite(Constants.ANCHO_PANTALLA/2, Constants.LAST_LINE, resourcesManager.texturaSplash2, vbom);
+		
+		splash2.setPosition(splash2.getX(), splash2.getY()-splash2.getHeight());
+		
 		attachChild(splash);
+		attachChild(splash2);
 	
 		
 	}

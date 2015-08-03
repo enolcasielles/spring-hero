@@ -4,8 +4,10 @@ import org.andengine.entity.sprite.Sprite;
 import org.andengine.opengl.texture.region.ITextureRegion;
 
 import com.maetrik.jumpingball.Constants;
+import com.maetrik.jumpingball.Utils;
 import com.maetrik.jumpingball.scenes.BaseScene;
 import com.maetrik.jumpingball.scenes.GameSceneBasic;
+import com.maetrik.jumpingball.scenes.GameSceneBasic.CAPAS;
 
 public class Nube {
 
@@ -48,12 +50,10 @@ public class Nube {
 		this.nube.setAlpha(alpha); 
 		this.nube.setScale(escala);
 		//Separacion con la siguiente nube
-		this.separacion =
-				  (float)(Math.random() * (Constants.MAX_SEPARATION_NUBE - Constants.MIN_SEPARATION_NUBE) + Constants.MIN_SEPARATION_NUBE);
+		this.separacion = Utils.aleatorioEntre(Constants.MIN_SEPARATION_NUBE, Constants.MAX_SEPARATION_NUBE);
 		this.separacion*=escala*0.5f; 
 	
-		nube.setZIndex(-1);
-		scene.getChild(num).attachChild(nube);
+		scene.getLayer(CAPAS.CAPA_NUBES).attachChild(nube);
 		
 	}
 	
@@ -93,7 +93,7 @@ public class Nube {
 			escala = 0.35f;
 		}
 		nube.setX(Constants.ANCHO_PANTALLA);
-		nube.setY((float)Math.random() * (Constants.MAX_Y_NUBE - Constants.MIN_Y_NUBE) + Constants.MIN_Y_NUBE);
+		nube.setY(Constants.FIRST_LINE + Utils.aleatorioEntre(Constants.MIN_Y_NUBE, Constants.MAX_Y_NUBE));
 		this.separacion =
 		  (float)Math.random() * (Constants.MAX_SEPARATION_NUBE - Constants.MIN_SEPARATION_NUBE) + Constants.MIN_SEPARATION_NUBE; 		
 	

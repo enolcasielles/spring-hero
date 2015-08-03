@@ -5,12 +5,10 @@ import java.io.IOException;
 import org.andengine.engine.Engine;
 import org.andengine.engine.LimitedFPSEngine;
 import org.andengine.engine.camera.Camera;
-import org.andengine.engine.handler.timer.ITimerCallback;
-import org.andengine.engine.handler.timer.TimerHandler;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.WakeLockOptions;
-import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
+import org.andengine.engine.options.resolutionpolicy.CroppedResolutionPolicy;
 import org.andengine.entity.scene.Scene;
 import org.andengine.opengl.view.RenderSurfaceView;
 import org.andengine.ui.activity.BaseGameActivity;
@@ -19,15 +17,23 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.KeyEvent;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import com.facebook.AppEventsLogger;
 import com.facebook.UiLifecycleHelper;
 import com.facebook.widget.FacebookDialog;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.games.Games;
+
 
 
 public class MainActivity extends BaseGameActivity implements GoogleApiClient.ConnectionCallbacks, 
@@ -37,11 +43,12 @@ public class MainActivity extends BaseGameActivity implements GoogleApiClient.Co
 	//===================================================
 	//CONSTANTES
 	//===================================================
-    static final int ANCHO_CAMARA = 720;
-    static final int ALTO_CAMARA = 480; 
-    //private static final String MY_AD_UNIT_ID = "ca-app-pub-4115086807184374/9230102445";	
-    //private static final String MY_INTERSTICIAL_AD_UNIT_ID_STRING = "ca-app-pub-4115086807184374/3183568845";
-    //private static final String MY_BANNER_GAME_OVER_AD_UNIT_ID = "ca-app-pub-4115086807184374/6320319647";
+    static final int ANCHO_CAMARA = 480;
+    static final int ALTO_CAMARA = 1024; 
+    private CroppedResolutionPolicy cropResolutionPolicy;
+    private static final String MY_AD_UNIT_ID = "ca-app-pub-4115086807184374/9230102445";	
+    private static final String MY_INTERSTICIAL_AD_UNIT_ID_STRING = "ca-app-pub-4115086807184374/3183568845";
+    private static final String MY_BANNER_GAME_OVER_AD_UNIT_ID = "ca-app-pub-4115086807184374/6320319647";
     
 		
 	//===================================================
@@ -54,11 +61,11 @@ public class MainActivity extends BaseGameActivity implements GoogleApiClient.Co
 	
 	private static UiLifecycleHelper uiHelper;
 	
-	//private AdView mAdView;    //Banner continuo
+	private AdView mAdView;    //Banner continuo
 	//private AdView mAdView2;   //Banner gameOver
-	//private AdRequest request;
+	private AdRequest request;
 	
-	//private InterstitialAd interstitial;
+	private InterstitialAd interstitial;
 	
 	private GoogleApiClient mGoogleApiClient;
 	private static int RC_SIGN_IN = 9001;
@@ -90,9 +97,10 @@ public class MainActivity extends BaseGameActivity implements GoogleApiClient.Co
 	    super.onResume();
 	    uiHelper.onResume();
 	    if (this.isGameLoaded())
-	        if (ResourcesManager.getInstance().musica != null ) {
+	        if (ResourcesManager.getInstance().musica_mar != null && ResourcesManager.getInstance().musica_pajaro != null ) {
 	        	if (Constants.MUSIC == true) {
-	        		ResourcesManager.getInstance().musica.resume();
+	        		ResourcesManager.getInstance().musica_pajaro.resume();
+	        		ResourcesManager.getInstance().musica_mar.resume();
 	        	}
 	    }
 	    AppEventsLogger.activateApp(this);
@@ -109,8 +117,10 @@ public class MainActivity extends BaseGameActivity implements GoogleApiClient.Co
 	    super.onPause();
 	    uiHelper.onPause();
 	    if (this.isGameLoaded())
-	        if (ResourcesManager.getInstance().musica != null)
-	        	   ResourcesManager.getInstance().musica.pause();
+	        if (ResourcesManager.getInstance().musica_mar != null && ResourcesManager.getInstance().musica_pajaro != null) {
+	        	ResourcesManager.getInstance().musica_mar.pause();
+	        	ResourcesManager.getInstance().musica_pajaro.pause();
+	        }
 	    AppEventsLogger.deactivateApp(this);
 	}
 
@@ -180,7 +190,7 @@ public class MainActivity extends BaseGameActivity implements GoogleApiClient.Co
 	}
 	
 	
-	/*
+	
 	@Override
     protected void onSetContentView() {
  
@@ -208,11 +218,13 @@ public class MainActivity extends BaseGameActivity implements GoogleApiClient.Co
         adViewLayoutParams.topMargin = height / 2;
         
         //Inicio el banner discontinuo
+        /*
         mAdView2 = new AdView(this);
         mAdView2.setAdSize(AdSize.BANNER);
     	mAdView2.setAdUnitId(MY_BANNER_GAME_OVER_AD_UNIT_ID);
     	mAdView2.refreshDrawableState();
         mAdView2.setVisibility(AdView.INVISIBLE);
+        */
         final FrameLayout.LayoutParams adView2LayoutParams =
                 new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT,
                                              FrameLayout.LayoutParams.WRAP_CONTENT,
@@ -228,7 +240,7 @@ public class MainActivity extends BaseGameActivity implements GoogleApiClient.Co
    	 
         //Cargo todos los anuncios
         mAdView.loadAd(request);
-        mAdView2.loadAd(request);
+        //mAdView2.loadAd(request);
         interstitial.loadAd(request);
        
         this.mRenderSurfaceView = new RenderSurfaceView(this);
@@ -240,14 +252,14 @@ public class MainActivity extends BaseGameActivity implements GoogleApiClient.Co
  
         frameLayout.addView(this.mRenderSurfaceView, surfaceViewLayoutParams);
         frameLayout.addView(mAdView, adViewLayoutParams);
-        frameLayout.addView(mAdView2, adView2LayoutParams);
+        //frameLayout.addView(mAdView2, adView2LayoutParams);
        
         this.setContentView(frameLayout, frameLayoutLayoutParams);
        
         
         
     }
-	*/
+	
 	
 	//Controla la visibilidad de los banners
 	public void setBannerVisibility(final int banner, final boolean bol) {
@@ -271,7 +283,6 @@ public class MainActivity extends BaseGameActivity implements GoogleApiClient.Co
 	
 	//Muestra el intersticial
 	public void displayInterstitial() {
-		/*
 		this.runOnUiThread(new Runnable() {
 	        @Override
 	        public void run() {
@@ -280,7 +291,6 @@ public class MainActivity extends BaseGameActivity implements GoogleApiClient.Co
 	      	    }
 	        }
 	    });
-	    */
 	}
 	
 	
@@ -298,7 +308,6 @@ public class MainActivity extends BaseGameActivity implements GoogleApiClient.Co
 	
 	//Carga un intersticial
 	public void loadIntersticial() {
-		/*
 		this.runOnUiThread(new Runnable() {
 	        @Override
 	        public void run() {
@@ -311,7 +320,6 @@ public class MainActivity extends BaseGameActivity implements GoogleApiClient.Co
 	    		}
 	        }
 	    });
-	    */
 	}
 	
 		
@@ -414,8 +422,6 @@ public class MainActivity extends BaseGameActivity implements GoogleApiClient.Co
 
 	@Override
 	public EngineOptions onCreateEngineOptions() {
-		
-		
 		//Inicio la camara
 		this.mCamera = new Camera(0,0, ANCHO_CAMARA,ALTO_CAMARA);
 		
@@ -427,8 +433,10 @@ public class MainActivity extends BaseGameActivity implements GoogleApiClient.Co
 	       	   terminal
 	    	4. La camara que se usara */
 		
-		EngineOptions eo = new EngineOptions (true,ScreenOrientation.LANDSCAPE_FIXED,
-				new RatioResolutionPolicy(ANCHO_CAMARA,ALTO_CAMARA),this.mCamera);
+		cropResolutionPolicy = new CroppedResolutionPolicy(ANCHO_CAMARA, ALTO_CAMARA);
+		
+		EngineOptions eo = new EngineOptions (true,ScreenOrientation.PORTRAIT_FIXED,
+				cropResolutionPolicy,this.mCamera);
 		
 		//Habilitamos sonidos y musica en el motor
 		eo.getAudioOptions().setNeedsMusic(true);
@@ -460,8 +468,11 @@ public class MainActivity extends BaseGameActivity implements GoogleApiClient.Co
 
 	@Override
 	public void onCreateScene(OnCreateSceneCallback pOnCreateSceneCallback) throws Exception {
+		//Ajusto la primer y ultima linea del area visible
+		Constants.FIRST_LINE = cropResolutionPolicy.getTop();
+		Constants.LAST_LINE = cropResolutionPolicy.getBottom();
 		//Inicio con escena del menu
-		SceneManager.getInstance().init_to_splashScene(pOnCreateSceneCallback);	
+		SceneManager.getInstance().init_to_gameScene(pOnCreateSceneCallback);	
 	}
 
 
@@ -469,7 +480,8 @@ public class MainActivity extends BaseGameActivity implements GoogleApiClient.Co
 	@Override
 	public void onPopulateScene(Scene pScene, OnPopulateSceneCallback pOnPopulateSceneCallback) throws IOException
 	{
-	    mEngine.registerUpdateHandler(new TimerHandler(2.0f, new ITimerCallback() 
+	    /*
+		mEngine.registerUpdateHandler(new TimerHandler(2.0f, new ITimerCallback() 
 	    {
 	            public void onTimePassed(final TimerHandler pTimerHandler) 
 	            {
@@ -477,6 +489,7 @@ public class MainActivity extends BaseGameActivity implements GoogleApiClient.Co
 	                SceneManager.getInstance().splashScene_to_menuScene();
 	            }
 	    }));
+	    */
 	    pOnPopulateSceneCallback.onPopulateSceneFinished();
 	}
 	
